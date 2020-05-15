@@ -1,26 +1,31 @@
-import React from 'react';
+import React, { Component , useState} from 'react';
 import logo from './logo.svg';
 import './App.css';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+const App2 = () => {
+  return(
+    <>
+     <p>Hello {this.state.name}</p>
+        <input type="text" name="name" />
+    </>
+    )
+}
+class App extends Component {
+
+  state = {
+    name: ''
+  }
+
+
+  render() {
+    return (
+      <>
+        <p>Hello {this.state.name}</p>
+        <input type="text" name="name" />
+      </>
+    )
+  }
 }
 
-export default App;
+
+export default App2;
