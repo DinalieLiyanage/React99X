@@ -1,8 +1,35 @@
 .container{
-    margin: auto;
-    padding: 36px;
+    margin: auto 150px;
+    /* padding: 36px; */
+}
+
+
+
+.topic{
+    font-family: Helvetica;
+    text-align: center;
+    font-size: 100px;
+    color: rgba(175, 47, 47, 0.15);
+    font-weight: 100;
+}
+
+.manipulator{
+    padding: 22px;
 }
 
 .item{
     padding: 6px;
+    margin-top: 6px;
+}
+
+.deleteIcon{
+    color: rgb(184, 121, 121);
+}
+
+.deleteIcon:hover{
+    color: rgb(194, 38, 38);
+}
+
+.todo{
+    width: 100%;
 }

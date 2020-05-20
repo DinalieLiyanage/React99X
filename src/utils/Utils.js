@@ -21,7 +21,7 @@ class Utils {
     }
 
 
-    // deletes a todo item
+    // delete a todo item   
     deleteItem = (id) => {
         return new Promise((resolve, reject) => {
 
@@ -33,7 +33,7 @@ class Utils {
 
                     list.splice(deletingItem.i, 1)
 
-                    localStorage.setItem('todoList', list)
+                    localStorage.setItem('todoList', JSON.stringify(list))
 
                     resolve(list)
                 }
@@ -45,6 +45,26 @@ class Utils {
 
 
 
+    }
+
+    updateTodoItem = (position, item) => {
+
+        return new Promise((resolve, reject) => {
+
+            var list = this.filterTodos()
+
+            if (list !== null) {
+
+                list.splice(position, 1, item)
+
+                console.log("updated list" + JSON.stringify(list))
+
+                resolve(list)
+
+            }
+
+        })
+        
     }
 
 
@@ -67,7 +87,7 @@ class Utils {
             return filteredTodos;
         }
 
-        alert("filter todos");
+
         return JSON.parse(localStorage.getItem("todoList"))
 
         // 
@@ -76,15 +96,18 @@ class Utils {
     }
 
     saveTodoItem = (item) => {
-        alert("Save to do service");
+
+        // alert("Save to do service");
         return new Promise((resolve, reject) => {
-            if (item) {
+            if (item !== null) {
+                console.log("In here")
                 var list = this.filterTodos();
+
                 list.push(item)
+                console.log("listing" + JSON.stringify(list))
+
                 localStorage.setItem("todoList", JSON.stringify(list))
                 resolve(list);
-            } else {
-                reject("Cannot save the item")
             }
         })
     }

@@ -3,8 +3,8 @@ import React, { Component } from 'react'
 import { TodoItem } from './models/TodoItem'
 import Utils from './utils/Utils'
 import { DATE_TIME_FORMAT } from './utils/Contants'
-import { Paper } from '@material-ui/core'
-
+import { Paper, IconButton, TextField, Checkbox } from '@material-ui/core'
+import CloseIcon from '@material-ui/icons/Close';
 import './App.css'
 var moment = require('moment');
 
@@ -13,8 +13,9 @@ var moment = require('moment');
 class App extends Component {
 
     state = {
-        clicked: false,
+
         itemList: [],
+        checked: false
 
     }
 
@@ -24,13 +25,11 @@ class App extends Component {
 
     }
 
-    toggleCompletion = () => {
 
-    }
 
-    deleteTodo =(id) =>{
-        this.utils.deleteItem(id).then(updatedList=>{
-            if(updatedList!==null){
+    deleteTodo = (id) => {
+        this.utils.deleteItem(id).then(updatedList => {
+            if (updatedList !== null) {
                 this.setState(
                     {
                         itemList: updatedList
@@ -45,7 +44,7 @@ class App extends Component {
     }
 
     componentDidMount = () => {
-
+        // localStorage.clear();
         this.renderListItems()
     }
 
@@ -59,22 +58,57 @@ class App extends Component {
 
     }
 
-    listView(data) {
+    toggleCompletion = (id, isCompleted) => {
+        this.utils.findItemById(id).then(res => {
+            if (res !== null) {
+                res.value.completed = !isCompleted;
 
-        return (
-
-            data.map(todoItem =>
-                <div key={todoItem.id}>
-                    <Paper className="item" elevation={3}>
-                        <input type="checkbox" id="item" name="item" value="todoItem" />
-                        <label >{todoItem.topic}</label>
-                    </Paper>
+                this.updateTodo(res.value.i,res.value);
 
 
-                </div>
+            }
+        })
 
+        // alert("Called" + this.isChecked)
+    }
+
+    updateTodo = (index, item) => {
+        this.utils.updateTodoItem(index, item).then(res => {
+            this.setState(
+                { itemList: res }
             )
-        );
+        })
+    }
+
+    listView(data) {
+        if (data !== null) {
+            return (
+
+                data.map(todoItem =>
+                    <div key={todoItem.id}>
+                        <Paper className="item" elevation={2}>
+                           
+                            <Checkbox
+                                checked={todoItem.completed}
+                                inputRef={(c) => this.isChecked = c}
+                                inputProps={{ 'aria-label': 'primary checkbox' }}
+                                onClick={() => this.toggleCompletion(todoItem.id, todoItem.completed)}
+                            />
+                            <label >{todoItem.topic}</label>
+                            <IconButton onClick={() => this.deleteTodo(todoItem.id)} aria-label="delete">
+                                <CloseIcon className="deleteIcon" />
+                            </IconButton>
+                        </Paper>
+
+
+                    </div>
+
+                )
+            );
+        }
+
+        return null
+
     }
 
 
@@ -93,11 +127,47 @@ class App extends Component {
         item.lastUpdateDate = new Date() !== null ? moment(new Date(), DATE_TIME_FORMAT) : null;
 
         this.utils.saveTodoItem(item).then(res => {
-            console.log("save todo inside" + JSON.stringify(res));
+            // console.log("save todo inside" + JSON.stringify(res));
+            this.setState(
+                {
+                    itemList: res
+                }
+            )
+            this.topic.value = null;
         }, err => {
-            console.log(JSON.stringify(err))
+            console.log("error in saving" + JSON.stringify(err))
         })
 
+    }
+
+    mainElements = () => {
+        return (
+            <>
+
+
+                <TextField
+                    name="topic"
+
+                    className="todo"
+                    variant="outlined"
+                    placeholder="What needs to be done?"
+                    inputRef={(c) => this.topic = c}
+                />
+
+                <button type="button" onClick={() => this.saveTodo()}>Save Item</button>
+                {/* <button type="button" onClick={() => this.renderListItems()}>Get Item</button> */}
+
+                <section>
+
+                    {this.listView(this.state.itemList)}
+                </section>
+
+                <section className="footer">
+
+                </section>
+
+            </>
+        )
     }
 
 
@@ -106,21 +176,14 @@ class App extends Component {
         return (
             <>
                 <div className="container">
-                    <h1>todos</h1>
-                    <input type="text" placeholder="What needs to be done?" name="topic" ref={(c) => this.topic = c} ></input>
-                    <button type="button" onClick={() => this.saveTodo()}>Save Item</button>
-                    <button type="button" onClick={() => this.renderListItems()}>Get Item</button>
+                    <h1 className="topic">todos</h1>
+                    <Paper className="manipulator" elevation={3}>
+                        {this.mainElements()}
+                    </Paper>
 
-                    <section>
-
-                        {this.listView(this.state.itemList)}
-                    </section>
-
-                    <section>
-
-                    </section>
                 </div>
             </>
+
         )
     }
 }
