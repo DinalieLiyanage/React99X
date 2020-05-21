@@ -1,5 +1,30 @@
+import { DATE_TIME_FORMAT} from './Contants'
+var moment = require('moment');
 
 class Utils {
+
+    // creates todo item
+    saveTodoItem = (item) => {
+
+
+        return new Promise((resolve, reject) => {
+
+            if (item !== null) {
+
+                console.log("In here")
+
+                var list = this.filterTodos();
+
+                list.push(item)
+
+                console.log("listing" + JSON.stringify(list))
+
+                localStorage.setItem("todoList", JSON.stringify(list))
+
+                resolve(list);
+            }
+        })
+    }
 
 
     // finds user by ID
@@ -47,8 +72,9 @@ class Utils {
 
     }
 
+    // updates any change of a todo item
     updateTodoItem = (position, item) => {
-
+        item.lastUpdateDate =  new Date() !== null ? moment(new Date(), DATE_TIME_FORMAT) : null;
         return new Promise((resolve, reject) => {
 
             var list = this.filterTodos()
@@ -59,23 +85,31 @@ class Utils {
 
                 console.log("updated list" + JSON.stringify(list))
 
+                localStorage.setItem('todoList',JSON.stringify(list))
+
                 resolve(list)
 
             }
 
         })
-        
+
     }
 
-
+    //filter todo items
     filterTodos = (filter) => {
+
         console.log(filter)
+
         var filteredTodos = []
+
         if (filter !== undefined) {
 
             var todos = JSON.parse(localStorage.getItem("todoList"))
+
             if (todos !== null) {
+
                 todos.forEach(todo => {
+
                     if (todo.completed === filter) {
 
                         filteredTodos.push(todo)
@@ -90,27 +124,20 @@ class Utils {
 
         return JSON.parse(localStorage.getItem("todoList"))
 
-        // 
+
 
 
     }
 
-    saveTodoItem = (item) => {
 
-        // alert("Save to do service");
-        return new Promise((resolve, reject) => {
-            if (item !== null) {
-                console.log("In here")
-                var list = this.filterTodos();
+    // footer : number of items pluralizing
+    remainingItemsFinder = () =>{
+        var nonCompletedList = this.filterTodos(false);
 
-                list.push(item)
-                console.log("listing" + JSON.stringify(list))
+        console.log("Length of the non completed"+nonCompletedList.length)
 
-                localStorage.setItem("todoList", JSON.stringify(list))
-                resolve(list);
-            }
-        })
     }
+
 
 
 

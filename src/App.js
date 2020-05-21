@@ -3,8 +3,9 @@ import React, { Component } from 'react'
 import { TodoItem } from './models/TodoItem'
 import Utils from './utils/Utils'
 import { DATE_TIME_FORMAT } from './utils/Contants'
-import { Paper, IconButton, TextField, Checkbox } from '@material-ui/core'
+import { Paper, IconButton, TextField, Checkbox, Button } from '@material-ui/core'
 import CloseIcon from '@material-ui/icons/Close';
+import UpdateIcon from '@material-ui/icons/Update';
 import './App.css'
 var moment = require('moment');
 
@@ -15,8 +16,8 @@ class App extends Component {
     state = {
 
         itemList: [],
-        checked: false
-
+        checked: false,
+        editItem: null
     }
 
     constructor() {
@@ -45,12 +46,13 @@ class App extends Component {
 
     componentDidMount = () => {
         // localStorage.clear();
+        
         this.renderListItems()
     }
 
-    renderListItems = () => {
+    renderListItems = (filter) => {
 
-        var list = this.utils.filterTodos(false);
+        var list = this.utils.filterTodos(filter);
 
         this.setState(
             { itemList: list }
@@ -63,7 +65,7 @@ class App extends Component {
             if (res !== null) {
                 res.value.completed = !isCompleted;
 
-                this.updateTodo(res.value.i,res.value);
+                this.updateTodo(res.i, res.value);
 
 
             }
@@ -74,10 +76,98 @@ class App extends Component {
 
     updateTodo = (index, item) => {
         this.utils.updateTodoItem(index, item).then(res => {
+            console.log("Comes here after update")
             this.setState(
-                { itemList: res }
+                {
+                    itemList: res,
+                    editItem: null
+                }
             )
+
+            this.topic.value = null;
+            // this.topicEdit.value = null;
         })
+    }
+
+
+    editTodo = (item) => {
+
+        console.log("editing" + JSON.stringify(item))
+        this.setState(
+            {
+                editItem: item
+            }
+        )
+
+        this.editTopic = item.topic
+
+
+
+
+    }
+
+
+
+
+
+    saveTodo = () => {
+        // alert("saving")
+
+
+
+
+        if (this.state.editItem === null) {
+            var item = new TodoItem()
+            item.id = item.generateId();
+            item.completed = false;
+            item.topic = this.topic.value
+
+            item.lastUpdateDate = new Date() !== null ? moment(new Date(), DATE_TIME_FORMAT) : null;
+            item.createDate = new Date() !== null ? moment(new Date(), DATE_TIME_FORMAT) : null;
+            this.utils.saveTodoItem(item).then(res => {
+                // console.log("save todo inside" + JSON.stringify(res));
+                this.setState(
+                    {
+                        itemList: res
+                    }
+                )
+                this.topic.value = null;
+            }, err => {
+                console.log("error in saving" + JSON.stringify(err))
+            })
+        } else {
+            this.utils.findItemById(this.state.editItem.id).then(
+                res => {
+                    if (res !== null) {
+
+                        res.value.topic = this.topicEdit.value;
+                        res.value.lastUpdateDate = new Date() !== null ? moment(new Date(), DATE_TIME_FORMAT) : null;
+                        // console.log(res.i)
+                        this.updateTodo(res.i, res.value)
+                    }
+                }
+            )
+        }
+
+
+
+
+    }
+
+    footerItem = () => {
+        return (
+            <>
+                <Button onClick={() => this.renderListItems()} style={{ marginLeft: "6px" }} variant="outlined" color="secondary">
+                    All
+                </Button>
+                <Button onClick={() => this.renderListItems(false)} style={{ marginLeft: "6px" }} variant="outlined" color="secondary">
+                    Active
+                </Button>
+                <Button onClick={() => this.renderListItems(true)} style={{ marginLeft: "6px" }} variant="outlined" color="secondary">
+                    Completed
+                </Button>
+            </>
+        )
     }
 
     listView(data) {
@@ -86,22 +176,73 @@ class App extends Component {
 
                 data.map(todoItem =>
                     <div key={todoItem.id}>
-                        <Paper className="item" elevation={2}>
-                           
-                            <Checkbox
-                                checked={todoItem.completed}
-                                inputRef={(c) => this.isChecked = c}
-                                inputProps={{ 'aria-label': 'primary checkbox' }}
-                                onClick={() => this.toggleCompletion(todoItem.id, todoItem.completed)}
-                            />
-                            <label >{todoItem.topic}</label>
-                            <IconButton onClick={() => this.deleteTodo(todoItem.id)} aria-label="delete">
-                                <CloseIcon className="deleteIcon" />
-                            </IconButton>
+                        <Paper onDoubleClick={() => this.editTodo(todoItem)} className="item" elevation={2}>
+                            {this.state.editItem !== null ? (
+
+                                this.state.editItem.id === todoItem.id ?
+                                    (
+                                        <TextField
+                                            name="topicEdit"
+                                            // value={this.topicEdit}
+                                            className="todo"
+                                            variant="outlined"
+                                            // placeholder="What needs to be done?"
+                                            inputRef={(d) => this.topicEdit = d}
+                                        />
+                                    ) : (
+                                        <Checkbox
+                                            checked={todoItem.completed}
+                                            inputRef={(c) => this.isChecked = c}
+                                            inputProps={{ 'aria-label': 'primary checkbox' }}
+                                            onClick={() => this.toggleCompletion(todoItem.id, todoItem.completed)}
+                                        />
+                                    )) : (
+                                    <Checkbox
+                                        checked={todoItem.completed}
+                                        inputRef={(c) => this.isChecked = c}
+                                        inputProps={{ 'aria-label': 'primary checkbox' }}
+                                        onClick={() => this.toggleCompletion(todoItem.id, todoItem.completed)}
+                                    />
+                                )}
+
+                            {this.state.editItem === null || (this.state.editItem !== null && this.state.editItem.id !== todoItem.id) ? (
+                                todoItem.completed ? (
+                                    <>
+                                        <label className="stroked">{todoItem.topic}</label>
+
+                                    </>
+                                ) : (
+                                        <>
+                                            <label >{todoItem.topic}</label>
+
+                                        </>
+                                    )
+                            ) : null
+
+
+
+
+                            }
+
+                            {
+                                this.state.editItem === null || (this.state.editItem !== null && this.state.editItem.id !== todoItem.id) ? (
+                                    <>
+                                        {/* < IconButton onClick={() => this.editTodo(todoItem)} aria-label="delete">
+                                            <UpdateIcon className="deleteIcon" />
+                                        </IconButton> */}
+                                        <IconButton onClick={() => this.deleteTodo(todoItem.id)} aria-label="delete">
+                                            <CloseIcon className="deleteIcon" />
+                                        </IconButton>
+                                    </>
+                                ) : null
+                            }
+
+
+
                         </Paper>
 
 
-                    </div>
+                    </div >
 
                 )
             );
@@ -111,34 +252,6 @@ class App extends Component {
 
     }
 
-
-
-
-
-    saveTodo = () => {
-        alert("saving")
-
-        var item = new TodoItem()
-
-        item.id = item.generateId();
-        item.topic = this.topic.value
-        item.completed = false;
-        item.createDate = new Date() !== null ? moment(new Date(), DATE_TIME_FORMAT) : null;
-        item.lastUpdateDate = new Date() !== null ? moment(new Date(), DATE_TIME_FORMAT) : null;
-
-        this.utils.saveTodoItem(item).then(res => {
-            // console.log("save todo inside" + JSON.stringify(res));
-            this.setState(
-                {
-                    itemList: res
-                }
-            )
-            this.topic.value = null;
-        }, err => {
-            console.log("error in saving" + JSON.stringify(err))
-        })
-
-    }
 
     mainElements = () => {
         return (
@@ -154,7 +267,8 @@ class App extends Component {
                     inputRef={(c) => this.topic = c}
                 />
 
-                <button type="button" onClick={() => this.saveTodo()}>Save Item</button>
+                <Button type="button" onClick={() => this.saveTodo()} variant="contained">Save Todo</Button>
+                {/* <button >Save Item</button> */}
                 {/* <button type="button" onClick={() => this.renderListItems()}>Get Item</button> */}
 
                 <section>
@@ -162,9 +276,10 @@ class App extends Component {
                     {this.listView(this.state.itemList)}
                 </section>
 
-                <section className="footer">
 
-                </section>
+                {/* <section className="footer">
+                    
+                </section> */}
 
             </>
         )
@@ -177,10 +292,17 @@ class App extends Component {
             <>
                 <div className="container">
                     <h1 className="topic">todos</h1>
-                    <Paper className="manipulator" elevation={3}>
+                    <Paper className="manipulator" elevation={2}>
                         {this.mainElements()}
                     </Paper>
+                    <section className="footer">
+                        {this.footerItem()}
+                    </section>
 
+                    <section className="guides">
+                        <p>Double click to edit a todo</p>
+                        <p>Created by Dinalie Fernando</p>
+                    </section>
                 </div>
             </>
 
